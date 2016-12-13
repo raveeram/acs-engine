@@ -38,6 +38,11 @@ func (m *MasterProfile) Validate() error {
 	if e := validateName(m.VMSize, "MasterProfile.VMSize"); e != nil {
 		return e
 	}
+	if m.ClassicProfile != "" {
+		if e := validateClassicProfileType(m.ClassicProfile); e != nil {
+			return e
+		}
+	}
 	return nil
 }
 
@@ -92,6 +97,11 @@ func (a *AgentPoolProfile) Validate() error {
 	}
 	if len(a.Ports) == 0 && len(a.DNSPrefix) > 0 {
 		return fmt.Errorf("AgentPoolProfile.Ports must be non empty when AgentPoolProfile.DNSPrefix is specified")
+	}
+	if a.ClassicProfile != "" {
+		if e := validateClassicProfileType(a.ClassicProfile); e != nil {
+			return e
+		}
 	}
 	return nil
 }
@@ -260,6 +270,17 @@ func validateUniqueProfileNames(profiles []AgentPoolProfile) error {
 			return fmt.Errorf("profile name '%s' already exists, profile names must be unique across pools", profile.Name)
 		}
 		profileNames[profile.Name] = true
+	}
+	return nil
+}
+
+func validateClassicProfileType(profileType ClassicAgentPoolProfileType) error {
+	switch profileType {
+	case SwarmPublic:
+	case DCOSPublic:
+	case DCOSPrivate:
+	default:
+		return fmt.Errorf("ClassicAgentPoolProfile has unknown profile type: %s", profileType)
 	}
 	return nil
 }
